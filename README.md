@@ -6,8 +6,6 @@
 
 Enterprise-level backend architecture solution
 
-English | [简体中文](./README.zh-CN.md)
-
 [![GitHub](https://img.shields.io/github/license/fastapi-practices/fastapi_best_architecture)](https://github.com/fastapi-practices/fastapi_best_architecture/blob/master/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-%2300758f)
