@@ -145,4 +145,3 @@ class PrimaryKeyType(StrEnum):
     """Primary key type"""
 
     autoincrement = 'autoincrement'
-    snowflake = 'snowflake'

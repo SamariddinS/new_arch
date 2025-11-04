@@ -14,7 +14,6 @@ FBA targets experienced Python backend engineers. If you’re newer, start with 
 
     - Python 3.10+
     - PostgreSQL 16.0+ or MySQL 8.0+
-      Snowflake ID users: see ../reference/pk.md {.read-more}
       MySQL users: see ../reference/db.md {.read-more}
     - Redis (latest stable recommended)
 

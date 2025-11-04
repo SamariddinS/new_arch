@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, declared_attr, mapped_column
 
 from backend.core.conf import settings
-from backend.utils.snowflake import snowflake
 from backend.utils.timezone import timezone
 
 # Common Mapped type primary key, needs to be added manually, refer to the following usage:
@@ -23,22 +22,6 @@ id_key = Annotated[
         autoincrement=True,
         sort_order=-999,
         comment='Primary key ID',
-    ),
-]
-
-
-# Snowflake algorithm Mapped type primary key, same usage as id_key
-# Details: https://fastapi-practices.github.io/fastapi_best_architecture_docs/backend/reference/pk.html
-snowflake_id_key = Annotated[
-    int,
-    mapped_column(
-        BigInteger,
-        primary_key=True,
-        unique=True,
-        index=True,
-        default=snowflake.generate,
-        sort_order=-999,
-        comment='Snowflake algorithm primary key ID',
     ),
 ]
 

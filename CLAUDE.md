@@ -177,7 +177,7 @@ backend/
 **Models:**
 - Base classes: `MappedBase`, `DataClassBase`, `Base` (includes timestamps)
 - Mixins: `DateTimeMixin`, `UserMixin`
-- Primary keys: `id_key` (autoincrement) or `snowflake_id_key` (distributed ID)
+- Primary keys: `id_key` (autoincrement)
 - Always add `from __future__ import annotations` at top of model files with relationships
 
 ## Key Systems & Patterns

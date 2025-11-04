@@ -28,10 +28,6 @@ id_key = Annotated[
 ]
 ```
 
-### Snowflake ID
-
-[Please refer to **Switching Primary Key**](pk.md){.read-more}
-
 ## Mixin Classes
 
 [Mixin](https://en.wikipedia.org/wiki/Mixin) is an object-oriented programming concept that makes structure clearer

@@ -114,8 +114,8 @@ Place plugins under `backend/plugin`. Example structure:
     - schema/
     - service/
     - sql (optional SQL init)
-        - mysql: init.sql, init_snowflake.sql
-        - postgresql: init.sql, init_snowflake.sql
+        - mysql: init.sql
+        - postgresql: init.sql
     - utils/
     - __init__.py keep as a package <Badge type="danger" text="required" />
     - plugin.toml config <Badge type="danger" text="required" />

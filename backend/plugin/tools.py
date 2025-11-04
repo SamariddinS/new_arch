@@ -81,14 +81,10 @@ async def get_plugin_sql(plugin: str, db_type: DataBaseType, pk_type: PrimaryKey
         mysql_dir = PLUGIN_DIR / plugin / 'sql' / 'mysql'
         if pk_type == PrimaryKeyType.autoincrement:
             sql_file = mysql_dir / 'init.sql'
-        else:
-            sql_file = mysql_dir / 'init_snowflake.sql'
     else:
         postgresql_dir = PLUGIN_DIR / plugin / 'sql' / 'postgresql'
         if pk_type == PrimaryKeyType.autoincrement:
             sql_file = postgresql_dir / 'init.sql'
-        else:
-            sql_file = postgresql_dir / 'init_snowflake.sql'
 
     path = anyio.Path(sql_file)
     if not await path.exists():
