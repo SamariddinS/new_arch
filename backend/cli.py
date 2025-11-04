@@ -47,7 +47,6 @@ def run(host: str, port: int, reload: bool, workers: int) -> None:  # noqa: FBT0
     panel_content = Text()
     panel_content.append(f'Current version: v{__version__}')
     panel_content.append(f'\nService Address: {url}')
-    panel_content.append('\nOfficial Documentation: https://fastapi-practices.github.io/fastapi_best_architecture_docs/')
 
     if settings.ENVIRONMENT == 'dev':
         panel_content.append(f'\n\n📖 Swagger Document: {docs_url}', style='yellow')

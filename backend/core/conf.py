@@ -119,7 +119,7 @@ class Settings(BaseSettings):
     REQUEST_LIMITER_REDIS_PREFIX: str = 'fba:limiter'
 
     # Time configuration
-    DATETIME_TIMEZONE: str = 'Asia/Shanghai'
+    DATETIME_TIMEZONE: str = 'Asia/Tashkent'
     DATETIME_FORMAT: str = '%Y-%m-%d %H:%M:%S'
 
     # File upload
