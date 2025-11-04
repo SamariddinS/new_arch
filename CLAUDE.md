@@ -367,6 +367,190 @@ Response includes: `items`, `total`, `page`, `size`, `total_pages`, `links` (fir
 - Use async operations for all database/external calls
 - Minimize blocking I/O
 
+## Utility Functions (backend/utils/)
+
+The project provides several utility modules for common operations:
+
+### Timezone Utilities (`backend/utils/timezone.py`)
+
+**Singleton instance:** `timezone`
+
+```python
+from backend.utils.timezone import timezone
+
+# Get current time in configured timezone
+now = timezone.now()
+
+# Convert datetime to configured timezone
+local_time = timezone.from_datetime(some_datetime)
+
+# Convert string to datetime
+dt = timezone.from_str('2024-01-01 12:00:00')
+dt_custom = timezone.from_str('01/01/2024', '%m/%d/%Y')
+
+# Convert datetime to string
+time_str = timezone.to_str(some_datetime)
+
+# Convert to UTC
+utc_time = timezone.to_utc(some_datetime)
+utc_from_timestamp = timezone.to_utc(1234567890)
+```
+
+Timezone configuration: `DATETIME_TIMEZONE` and `DATETIME_FORMAT` in `backend/core/conf.py`
+
+### Serialization (`backend/utils/serializers.py`)
+
+```python
+from backend.utils.serializers import (
+    select_columns_serialize,
+    select_list_serialize,
+    select_as_dict,
+    MsgSpecJSONResponse
+)
+
+# Serialize single SQLAlchemy row (columns only, no relationships)
+row_dict = select_columns_serialize(user_row)
+
+# Serialize list of SQLAlchemy rows
+users_list = select_list_serialize(user_rows)
+
+# Convert row to dict (includes relationships)
+full_dict = select_as_dict(user_row)
+with_aliases = select_as_dict(user_row, use_alias=True)
+
+# High-performance JSON response (used internally by fast_success)
+return MsgSpecJSONResponse({'key': 'value'})
+```
+
+### Tree Building (`backend/utils/build_tree.py`)
+
+```python
+from backend.utils.build_tree import get_tree_data, get_vben5_tree_data
+from backend.common.enums import BuildTreeType
+
+# Build tree structure from flat data (requires 'id' and 'parent_id' fields)
+tree = get_tree_data(
+    rows,
+    build_type=BuildTreeType.traversal,  # or BuildTreeType.recursive
+    is_sort=True,
+    sort_key='sort'
+)
+
+# Build vben5 frontend menu tree structure
+vben_tree = get_vben5_tree_data(rows, is_sort=True, sort_key='sort')
+```
+
+**Algorithm choices:**
+- `traversal` (default) - Better performance, recommended
+- `recursive` - Higher performance impact, use only for small datasets
+
+### Encryption (`backend/utils/encrypt.py`)
+
+```python
+from backend.utils.encrypt import AESCipher, Md5Cipher, ItsDCipher
+
+# AES encryption/decryption
+aes = AESCipher(key='your_32_byte_hex_key')
+encrypted = aes.encrypt('sensitive data')
+decrypted = aes.decrypt(encrypted)
+
+# MD5 hashing (one-way)
+hash_value = Md5Cipher.encrypt('password123')
+
+# ItsDangerous encryption (handles serialization)
+its = ItsDCipher(key='your_32_byte_hex_key')
+encrypted = its.encrypt({'user_id': 123, 'role': 'admin'})
+decrypted = its.decrypt(encrypted)  # Returns original dict
+```
+
+### Request Parsing (`backend/utils/request_parse.py`)
+
+```python
+from backend.utils.request_parse import (
+    get_request_ip,
+    parse_ip_info,
+    parse_user_agent_info
+)
+
+# Get client IP (handles X-Real-IP and X-Forwarded-For)
+ip = get_request_ip(request)
+
+# Parse IP location info (with Redis caching)
+ip_info = await parse_ip_info(request)
+# Returns: IpInfo(ip=..., country=..., region=..., city=...)
+
+# Parse user agent details
+ua_info = parse_user_agent_info(request)
+# Returns: UserAgentInfo(user_agent=..., device=..., os=..., browser=...)
+```
+
+**IP location modes** (configured in `backend/core/conf.py`):
+- `IP_LOCATION_PARSE = 'online'` - High accuracy, calls external API
+- `IP_LOCATION_PARSE = 'offline'` - 100% available, uses local database
+- `IP_LOCATION_PARSE = 'false'` - Disabled
+
+### Regex Validation (`backend/utils/re_verify.py`)
+
+```python
+from backend.utils.re_verify import is_phone, is_git_url, search_string, match_string
+
+# Validate phone number (Chinese format)
+if is_phone('13812345678'):
+    # Valid phone number
+    pass
+
+# Validate git URL
+if is_git_url('https://github.com/user/repo.git'):
+    # Valid git URL
+    pass
+
+# Custom regex operations
+result = search_string(r'\d+', 'abc123def')  # Searches anywhere
+result = match_string(r'\d+', '123abc')  # Matches from start
+```
+
+### Trace ID (`backend/utils/trace_id.py`)
+
+```python
+from backend.utils.trace_id import get_request_trace_id
+
+# Get current request trace ID (from context)
+trace_id = get_request_trace_id()
+```
+
+Trace IDs are automatically generated for each request and stored in context. Configuration in `backend/core/conf.py`:
+- `TRACE_ID_REQUEST_HEADER_KEY = 'X-Request-ID'`
+- `TRACE_ID_LOG_LENGTH = 32`
+
+### Async to Sync Wrapper (`backend/utils/_await.py`)
+
+```python
+from backend.utils._await import run_await
+
+# Wrap async function to make it callable from sync context
+@run_await
+async def async_operation():
+    return await some_async_call()
+
+# Call from sync context
+result = async_operation()  # No await needed
+```
+
+This is useful when you need to call async functions from synchronous code (like CLI commands).
+
+### Demo Site Protection (`backend/utils/demo_site.py`)
+
+```python
+from backend.utils.demo_site import demo_site
+
+# Use as dependency to protect endpoints in demo mode
+@router.post('/delete', dependencies=[Depends(demo_site)])
+async def delete_item():
+    pass
+```
+
+When `DEMO_MODE = True` in config, all non-GET/OPTIONS requests are blocked except those in `DEMO_MODE_EXCLUDE`.
+
 ## Important Configuration Files
 
 - **`backend/core/conf.py`** - Global settings (Pydantic Settings from `.env`)
