@@ -5,7 +5,7 @@ from backend.utils.import_parse import get_model_objects
 
 
 def get_app_models() -> list[type]:
-    """获取 app 所有模型类"""
+    """Get all app model classes"""
     app_path = BASE_PATH / 'app'
     list_dirs = os.listdir(app_path)
 

@@ -5,7 +5,7 @@ from backend.common.security.jwt import jwt_authentication
 from backend.core.conf import settings
 from backend.database.redis import redis_client
 
-# 创建 Socket.IO 服务器实例
+# Create Socket.IO server instance
 sio = socketio.AsyncServer(
     client_manager=socketio.AsyncRedisManager(
         f'redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DATABASE}',
@@ -19,18 +19,18 @@ sio = socketio.AsyncServer(
 
 @sio.event
 async def connect(sid, environ, auth) -> bool:
-    """Socket 连接事件"""
+    """Socket connect event"""
     if not auth:
-        log.error('WebSocket 连接失败：无授权')
+        log.error('WebSocket connection failed: No authorization')
         return False
 
     session_uuid = auth.get('session_uuid')
     token = auth.get('token')
     if not token or not session_uuid:
-        log.error('WebSocket 连接失败：授权失败，请检查')
+        log.error('WebSocket connection failed: Authorization failed, please check')
         return False
 
-    # 免授权直连
+    # Direct connection without authorization
     if token == settings.WS_NO_AUTH_MARKER:
         await redis_client.sadd(settings.TOKEN_ONLINE_REDIS_PREFIX, session_uuid)
         return True
@@ -38,7 +38,7 @@ async def connect(sid, environ, auth) -> bool:
     try:
         await jwt_authentication(token)
     except Exception as e:
-        log.info(f'WebSocket 连接失败：{e!s}')
+        log.info(f'WebSocket connection failed: {e!s}')
         return False
 
     await redis_client.sadd(settings.TOKEN_ONLINE_REDIS_PREFIX, session_uuid)
@@ -47,5 +47,5 @@ async def connect(sid, environ, auth) -> bool:
 
 @sio.event
 async def disconnect(sid) -> None:
-    """Socket 断开连接事件"""
+    """Socket disconnect event"""
     await redis_client.spop(settings.TOKEN_ONLINE_REDIS_PREFIX)

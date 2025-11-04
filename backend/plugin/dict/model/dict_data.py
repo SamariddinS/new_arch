@@ -13,21 +13,21 @@ if TYPE_CHECKING:
 
 
 class DictData(Base):
-    """字典数据表"""
+    """Dictionary data table"""
 
     __tablename__ = 'sys_dict_data'
 
     id: Mapped[id_key] = mapped_column(init=False)
-    type_code: Mapped[str] = mapped_column(sa.String(32), comment='对应的字典类型编码')
-    label: Mapped[str] = mapped_column(sa.String(32), comment='字典标签')
-    value: Mapped[str] = mapped_column(sa.String(32), comment='字典值')
-    color: Mapped[str | None] = mapped_column(sa.String(32), default=None, comment='标签颜色')
-    sort: Mapped[int] = mapped_column(default=0, comment='排序')
-    status: Mapped[int] = mapped_column(default=1, comment='状态（0停用 1正常）')
-    remark: Mapped[str | None] = mapped_column(UniversalText, default=None, comment='备注')
+    type_code: Mapped[str] = mapped_column(sa.String(32), comment='Corresponding dictionary type code')
+    label: Mapped[str] = mapped_column(sa.String(32), comment='Dictionary label')
+    value: Mapped[str] = mapped_column(sa.String(32), comment='Dictionary value')
+    color: Mapped[str | None] = mapped_column(sa.String(32), default=None, comment='Label color')
+    sort: Mapped[int] = mapped_column(default=0, comment='Sort order')
+    status: Mapped[int] = mapped_column(default=1, comment='Status (0=disabled, 1=enabled)')
+    remark: Mapped[str | None] = mapped_column(UniversalText, default=None, comment='Remark')
 
-    # 字典类型一对多
+    # Dictionary type one-to-many
     type_id: Mapped[int] = mapped_column(
-        sa.ForeignKey('sys_dict_type.id', ondelete='CASCADE'), default=0, comment='字典类型关联ID'
+        sa.ForeignKey('sys_dict_type.id', ondelete='CASCADE'), default=0, comment='Dictionary type association ID'
     )
     type: Mapped[DictType] = relationship(init=False, back_populates='datas')

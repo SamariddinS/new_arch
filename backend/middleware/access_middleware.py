@@ -9,20 +9,20 @@ from backend.utils.timezone import timezone
 
 
 class AccessMiddleware(BaseHTTPMiddleware):
-    """访问日志中间件"""
+    """Access Logging Middleware"""
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """
-        处理请求并记录访问日志
+        Process requests and log accesses
 
-        :param request: FastAPI 请求对象
-        :param call_next: 下一个中间件或路由处理函数
+        :param request: FastAPI Request Object
+        :param call_next: Next middleware or route handler
         :return:
         """
         path = request.url.path if not request.url.query else request.url.path + '/' + request.url.query
 
         if request.method != 'OPTIONS':
-            log.debug(f'--> 请求开始[{path}]')
+            log.debug(f'--> Request Start [{path}]')
 
         perf_time = time.perf_counter()
         ctx.perf_time = perf_time
@@ -33,7 +33,7 @@ class AccessMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         if request.method != 'OPTIONS':
-            log.debug('<-- 请求结束')
+            log.debug('<-- Request End')
 
             log.info(
                 f'{request.client.host: <15} | {request.method: <8} | {response.status_code: <6} | '

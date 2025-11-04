@@ -20,9 +20,9 @@ from backend.core.conf import settings
 
 def create_database_url(*, unittest: bool = False) -> URL:
     """
-    创建数据库链接
+    Create database connection
 
-    :param unittest: 是否用于单元测试
+    :param unittest: Whether for unit testing
     :return:
     """
     url = URL.create(
@@ -40,66 +40,66 @@ def create_database_url(*, unittest: bool = False) -> URL:
 
 def create_async_engine_and_session(url: str | URL) -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
     """
-    创建数据库引擎和 Session
+    Create database engine and Session
 
-    :param url: 数据库连接 URL
+    :param url: Database connection URL
     :return:
     """
     try:
-        # 数据库引擎
+        # Database engine
         engine = create_async_engine(
             url,
             echo=settings.DATABASE_ECHO,
             echo_pool=settings.DATABASE_POOL_ECHO,
             future=True,
-            # 中等并发
-            pool_size=10,  # 低：- 高：+
-            max_overflow=20,  # 低：- 高：+
-            pool_timeout=30,  # 低：+ 高：-
-            pool_recycle=3600,  # 低：+ 高：-
-            pool_pre_ping=True,  # 低：False 高：True
-            pool_use_lifo=False,  # 低：False 高：True
+            # Medium concurrency
+            pool_size=10,  # Low: - High: +
+            max_overflow=20,  # Low: - High: +
+            pool_timeout=30,  # Low: + High: -
+            pool_recycle=3600,  # Low: + High: -
+            pool_pre_ping=True,  # Low: False High: True
+            pool_use_lifo=False,  # Low: False High: True
         )
     except Exception as e:
-        log.error('❌ 数据库链接失败 {}', e)
+        log.error('❌ Database connection failed {}', e)
         sys.exit()
     else:
         db_session = async_sessionmaker(
             bind=engine,
             class_=AsyncSession,
-            autoflush=False,  # 禁用自动刷新
-            expire_on_commit=False,  # 禁用提交时过期
+            autoflush=False,  # Disable auto flush
+            expire_on_commit=False,  # Disable expiration on commit
         )
         return engine, db_session
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """获取数据库会话"""
+    """Get database session"""
     async with async_db_session() as session:
         yield session
 
 
 async def get_db_transaction() -> AsyncGenerator[AsyncSession, None]:
-    """获取带有事务的数据库会话"""
+    """Get database session with transaction"""
     async with async_db_session.begin() as session:
         yield session
 
 
 async def create_tables() -> None:
-    """创建数据库表"""
+    """Create database tables"""
     async with async_engine.begin() as coon:
         await coon.run_sync(MappedBase.metadata.create_all)
 
 
 def uuid4_str() -> str:
-    """数据库引擎 UUID 类型兼容性解决方案"""
+    """Database engine UUID type compatibility solution"""
     return str(uuid4())
 
 
-# SQLA 数据库链接
+# SQLA database connection
 SQLALCHEMY_DATABASE_URL = create_database_url()
 
-# SALA 异步引擎和会话
+# SQLA async engine and session
 async_engine, async_db_session = create_async_engine_and_session(SQLALCHEMY_DATABASE_URL)
 
 # Session Annotated

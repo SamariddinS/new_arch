@@ -16,7 +16,7 @@ router = APIRouter()
 linux_do_client = LinuxDoOAuth20(settings.OAUTH2_LINUX_DO_CLIENT_ID, settings.OAUTH2_LINUX_DO_CLIENT_SECRET)
 
 
-@router.get('', summary='获取 LinuxDo 授权链接')
+@router.get('', summary='Get LinuxDo authorization URL')
 async def get_linux_do_oauth2_url() -> ResponseSchemaModel[str]:
     auth_url = await linux_do_client.get_authorization_url(redirect_uri=settings.OAUTH2_LINUX_DO_REDIRECT_URI)
     return response_base.success(data=auth_url)
@@ -24,8 +24,8 @@ async def get_linux_do_oauth2_url() -> ResponseSchemaModel[str]:
 
 @router.get(
     '/callback',
-    summary='LinuxDo 授权自动重定向',
-    description='LinuxDo 授权后，自动重定向到当前地址并获取用户信息，通过用户信息自动创建系统用户',
+    summary='LinuxDo authorization auto redirect',
+    description='After LinuxDo authorization, automatically redirect to current address and get user info, automatically create system user through user info',
     dependencies=[Depends(RateLimiter(times=5, minutes=1))],
 )
 async def linux_do_oauth2_callback(  # noqa: ANN201

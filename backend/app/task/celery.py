@@ -19,7 +19,7 @@ def find_task_packages() -> list[str]:
 
 
 def init_celery() -> celery.Celery:
-    """初始化 Celery 应用"""
+    """Initialize Celery application"""
 
     # TODO: Update this work if celery version >= 6.0.0
     # https://github.com/fastapi-practices/fastapi_best_architecture/issues/321
@@ -53,16 +53,16 @@ def init_celery() -> celery.Celery:
         timezone=settings.DATETIME_TIMEZONE,
     )
 
-    # 在 Celery 中设置此参数无效
-    # 参数：https://github.com/celery/celery/issues/7270
+    # Setting this parameter in Celery has no effect
+    # Reference: https://github.com/celery/celery/issues/7270
     app.loader.override_backends = {'db': 'backend.app.task.database:DatabaseBackend'}
 
-    # 自动发现任务
+    # Auto-discover tasks
     packages = find_task_packages()
     app.autodiscover_tasks(packages)
 
     return app
 
 
-# 创建 Celery 实例
+# Create Celery instance
 celery_app: celery.Celery = init_celery()

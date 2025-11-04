@@ -14,21 +14,21 @@ if TYPE_CHECKING:
 
 
 class Role(Base):
-    """角色表"""
+    """Role table"""
 
     __tablename__ = 'sys_role'
 
     id: Mapped[id_key] = mapped_column(init=False)
-    name: Mapped[str] = mapped_column(sa.String(32), unique=True, comment='角色名称')
-    status: Mapped[int] = mapped_column(default=1, comment='角色状态（0停用 1正常）')
-    is_filter_scopes: Mapped[bool] = mapped_column(default=True, comment='过滤数据权限(0否 1是)')
-    remark: Mapped[str | None] = mapped_column(UniversalText, default=None, comment='备注')
+    name: Mapped[str] = mapped_column(sa.String(32), unique=True, comment='Role name')
+    status: Mapped[int] = mapped_column(default=1, comment='Role status (0=disabled 1=normal)')
+    is_filter_scopes: Mapped[bool] = mapped_column(default=True, comment='Filter data permissions (0=no 1=yes)')
+    remark: Mapped[str | None] = mapped_column(UniversalText, default=None, comment='Remark')
 
-    # 角色用户多对多
+    # Role user many-to-many
     users: Mapped[list[User]] = relationship(init=False, secondary=sys_user_role, back_populates='roles')
 
-    # 角色菜单多对多
+    # Role menu many-to-many
     menus: Mapped[list[Menu]] = relationship(init=False, secondary=sys_role_menu, back_populates='roles')
 
-    # 角色数据范围多对多
+    # Role data scope many-to-many
     scopes: Mapped[list[DataScope]] = relationship(init=False, secondary=sys_role_data_scope, back_populates='roles')

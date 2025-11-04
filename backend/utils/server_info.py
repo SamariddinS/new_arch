@@ -15,9 +15,9 @@ class ServerInfo:
     @staticmethod
     def format_bytes(size: float) -> str:
         """
-        格式化字节大小
+        Format byte size
 
-        :param size: 字节大小
+        :param size: Byte size
         :return:
         """
         factor = 1024
@@ -30,9 +30,9 @@ class ServerInfo:
     @staticmethod
     def fmt_seconds(seconds: int) -> str:
         """
-        格式化秒数为可读的时间字符串
+        Format seconds to readable time string
 
-        :param seconds: 秒数
+        :param seconds: Seconds
         :return:
         """
         days, rem = divmod(int(seconds), 86400)
@@ -41,29 +41,29 @@ class ServerInfo:
 
         parts = []
         if days:
-            parts.append(f'{days} 天')
+            parts.append(f'{days} days')
         if hours:
-            parts.append(f'{hours} 小时')
+            parts.append(f'{hours} hours')
         if minutes:
-            parts.append(f'{minutes} 分钟')
+            parts.append(f'{minutes} minutes')
         if seconds:
-            parts.append(f'{seconds} 秒')
+            parts.append(f'{seconds} seconds')
 
-        return ' '.join(parts) if parts else '0 秒'
+        return ' '.join(parts) if parts else '0 seconds'
 
     @staticmethod
     def fmt_timedelta(td: timedelta) -> str:
         """
-        格式化时间差
+        Format time delta
 
-        :param td: 时间差对象
+        :param td: Time delta object
         :return:
         """
         return ServerInfo.fmt_seconds(round(td.total_seconds()))
 
     @staticmethod
     def get_cpu_info() -> dict[str, float | int]:
-        """获取 CPU 信息"""
+        """Get CPU information"""
         cpu_info = {
             'usage': round(psutil.cpu_percent(interval=0.1), 2),  # %
             'logical_num': psutil.cpu_count(logical=True) or 0,
@@ -89,7 +89,7 @@ class ServerInfo:
 
     @staticmethod
     def get_mem_info() -> dict[str, float]:
-        """获取内存信息"""
+        """Get memory information"""
         mem = psutil.virtual_memory()
         gb_factor = 1024**3
         return {
@@ -101,7 +101,7 @@ class ServerInfo:
 
     @staticmethod
     def get_sys_info() -> dict[str, str]:
-        """获取服务器信息"""
+        """Get server information"""
         hostname = socket.gethostname()
         ip = '127.0.0.1'
 
@@ -122,7 +122,7 @@ class ServerInfo:
 
     @staticmethod
     def get_disk_info() -> list[dict[str, str]]:
-        """获取磁盘信息"""
+        """Get disk information"""
         disk_info = []
         for partition in psutil.disk_partitions(all=False):
             usage = psutil.disk_usage(partition.mountpoint)
@@ -140,7 +140,7 @@ class ServerInfo:
 
     @staticmethod
     def get_service_info() -> dict[str, str | datetime]:
-        """获取服务信息"""
+        """Get service information"""
         process = psutil.Process(os.getpid())
         mem_info = process.memory_info()
 

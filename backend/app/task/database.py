@@ -10,7 +10,7 @@ from backend.app.task.model.result import Task, TaskExtended, TaskSet
 from backend.app.task.session import SessionManager
 
 """
-重写 from celery.backends.database 内部 DatabaseBackend 类，此类实现与模型配合不佳，导致 fba 创建表和 alembic 迁移困难
+Override the internal DatabaseBackend class from celery.backends.database. This implementation does not work well with models, causing difficulties in creating tables with FBA and migrating with Alembic.
 """
 
 
@@ -34,13 +34,17 @@ class DatabaseBackend(BaseBackend):
             self.task_cls = TaskExtended
 
         self.url = url or dburi or conf.database_url
-        self.engine_options = dict(engine_options or {}, **conf.database_engine_options or {})
-        self.short_lived_sessions = kwargs.get('short_lived_sessions', conf.database_short_lived_sessions)
+        self.engine_options = dict(
+            engine_options or {}, **conf.database_engine_options or {})
+        self.short_lived_sessions = kwargs.get(
+            'short_lived_sessions', conf.database_short_lived_sessions)
 
         schemas = conf.database_table_schemas or {}
         tablenames = conf.database_table_names or {}
-        self.task_cls.configure(schema=schemas.get('task'), name=tablenames.get('task'))
-        self.taskset_cls.configure(schema=schemas.get('group'), name=tablenames.get('group'))
+        self.task_cls.configure(schema=schemas.get(
+            'task'), name=tablenames.get('task'))
+        self.taskset_cls.configure(schema=schemas.get(
+            'group'), name=tablenames.get('group'))
 
         if not self.url:
             raise ImproperlyConfigured(
@@ -75,7 +79,8 @@ class DatabaseBackend(BaseBackend):
         """Store return value and state of an executed task."""
         session = self.result_session()
         with session_cleanup(session):
-            task = list(session.query(self.task_cls).filter(self.task_cls.task_id == task_id))
+            task = list(session.query(self.task_cls).filter(
+                self.task_cls.task_id == task_id))
             task = task and task[0]
             if not task:
                 task = self.task_cls(task_id)
@@ -83,7 +88,8 @@ class DatabaseBackend(BaseBackend):
                 session.add(task)
                 session.flush()
 
-            self._update_result(task, result, state, traceback=traceback, request=request)
+            self._update_result(task, result, state,
+                                traceback=traceback, request=request)
             session.commit()
 
     def _update_result(self, task, result, state, traceback=None, request=None) -> None:  # noqa: ANN001
@@ -98,7 +104,8 @@ class DatabaseBackend(BaseBackend):
 
         # Exclude the primary key id and task_id columns
         # as we should not set it None
-        columns = [column.name for column in self.task_cls.__table__.columns if column.name not in {'id', 'task_id'}]
+        columns = [column.name for column in self.task_cls.__table__.columns if column.name not in {
+            'id', 'task_id'}]
 
         # Iterate through the columns name of the table
         # to set the value from meta.
@@ -112,7 +119,8 @@ class DatabaseBackend(BaseBackend):
         """Get task meta-data for a task by id."""
         session = self.result_session()
         with session_cleanup(session):
-            task = list(session.query(self.task_cls).filter(self.task_cls.task_id == task_id))
+            task = list(session.query(self.task_cls).filter(
+                self.task_cls.task_id == task_id))
             task = task and task[0]
             if not task:
                 task = self.task_cls(task_id)
@@ -141,7 +149,8 @@ class DatabaseBackend(BaseBackend):
         """Get meta-data for group by id."""
         session = self.result_session()
         with session_cleanup(session):
-            group = session.query(self.taskset_cls).filter(self.taskset_cls.taskset_id == group_id).first()
+            group = session.query(self.taskset_cls).filter(
+                self.taskset_cls.taskset_id == group_id).first()
             if group:
                 return group.to_dict()
 
@@ -150,7 +159,8 @@ class DatabaseBackend(BaseBackend):
         """Delete meta-data for group by id."""
         session = self.result_session()
         with session_cleanup(session):
-            session.query(self.taskset_cls).filter(self.taskset_cls.taskset_id == group_id).delete()
+            session.query(self.taskset_cls).filter(
+                self.taskset_cls.taskset_id == group_id).delete()
             session.flush()
             session.commit()
 
@@ -159,7 +169,8 @@ class DatabaseBackend(BaseBackend):
         """Forget about result."""
         session = self.result_session()
         with session_cleanup(session):
-            session.query(self.task_cls).filter(self.task_cls.task_id == task_id).delete()
+            session.query(self.task_cls).filter(
+                self.task_cls.task_id == task_id).delete()
             session.commit()
 
     def cleanup(self) -> None:
@@ -168,11 +179,14 @@ class DatabaseBackend(BaseBackend):
         expires = self.expires
         now = self.app.now()
         with session_cleanup(session):
-            session.query(self.task_cls).filter(self.task_cls.date_done < (now - expires)).delete()
-            session.query(self.taskset_cls).filter(self.taskset_cls.date_done < (now - expires)).delete()
+            session.query(self.task_cls).filter(
+                self.task_cls.date_done < (now - expires)).delete()
+            session.query(self.taskset_cls).filter(
+                self.taskset_cls.date_done < (now - expires)).delete()
             session.commit()
 
     def __reduce__(self, args=(), kwargs=None):  # noqa: ANN001, ANN204
         kwargs = kwargs or {}
-        kwargs.update({'dburi': self.url, 'expires': self.expires, 'engine_options': self.engine_options})
+        kwargs.update({'dburi': self.url, 'expires': self.expires,
+                      'engine_options': self.engine_options})
         return super().__reduce__(args, kwargs)

@@ -39,35 +39,35 @@ from backend.utils.serializers import MsgSpecJSONResponse
 @asynccontextmanager
 async def register_init(app: FastAPI) -> AsyncGenerator[None, None]:
     """
-    启动初始化
+    Startup initialization
 
-    :param app: FastAPI 应用实例
+    :param app: FastAPI application instance
     :return:
     """
-    # 创建数据库表
+    # Create database tables
     await create_tables()
 
-    # 初始化 redis
+    # Initialize redis
     await redis_client.open()
 
-    # 初始化 limiter
+    # Initialize limiter
     await FastAPILimiter.init(
         redis=redis_client,
         prefix=settings.REQUEST_LIMITER_REDIS_PREFIX,
         http_callback=http_limit_callback,
     )
 
-    # 创建操作日志任务
+    # Create operation log task
     create_task(OperaLogMiddleware.consumer())
 
     yield
 
-    # 关闭 redis 连接
+    # Close redis connection
     await redis_client.aclose()
 
 
 def register_app() -> FastAPI:
-    """注册 FastAPI 应用"""
+    """Register FastAPI application"""
 
     class MyFastAPI(FastAPI):
         if settings.MIDDLEWARE_CORS:
@@ -95,7 +95,7 @@ def register_app() -> FastAPI:
         lifespan=register_init,
     )
 
-    # 注册组件
+    # Register components
     register_logger()
     register_socket_app(app)
     register_static_file(app)
@@ -108,33 +108,33 @@ def register_app() -> FastAPI:
 
 
 def register_logger() -> None:
-    """注册日志"""
+    """Register logger"""
     setup_logging()
     set_custom_logfile()
 
 
 def register_static_file(app: FastAPI) -> None:
     """
-    注册静态资源服务
+    Register static file service
 
-    :param app: FastAPI 应用实例
+    :param app: FastAPI application instance
     :return:
     """
-    # 上传静态资源
+    # Upload static resources
     if not os.path.exists(UPLOAD_DIR):
         os.makedirs(UPLOAD_DIR)
     app.mount('/static/upload', StaticFiles(directory=UPLOAD_DIR), name='upload')
 
-    # 固有静态资源
+    # Fixed static resources
     if settings.FASTAPI_STATIC_FILES:
         app.mount('/static', StaticFiles(directory=STATIC_DIR), name='static')
 
 
 def register_middleware(app: FastAPI) -> None:
     """
-    注册中间件（执行顺序从下往上）
+    Register middleware (execution order from bottom to top)
 
-    :param app: FastAPI 应用实例
+    :param app: FastAPI application instance
     :return:
     """
     # Opera log
@@ -169,9 +169,9 @@ def register_middleware(app: FastAPI) -> None:
 
 def register_router(app: FastAPI) -> None:
     """
-    注册路由
+    Register router
 
-    :param app: FastAPI 应用实例
+    :param app: FastAPI application instance
     :return:
     """
     dependencies = [Depends(demo_site)] if settings.DEMO_MODE else None
@@ -187,9 +187,9 @@ def register_router(app: FastAPI) -> None:
 
 def register_page(app: FastAPI) -> None:
     """
-    注册分页查询功能
+    Register pagination query function
 
-    :param app: FastAPI 应用实例
+    :param app: FastAPI application instance
     :return:
     """
     add_pagination(app)
@@ -197,9 +197,9 @@ def register_page(app: FastAPI) -> None:
 
 def register_socket_app(app: FastAPI) -> None:
     """
-    注册 Socket.IO 应用
+    Register Socket.IO application
 
-    :param app: FastAPI 应用实例
+    :param app: FastAPI application instance
     :return:
     """
     from backend.common.socketio.server import sio
@@ -207,7 +207,7 @@ def register_socket_app(app: FastAPI) -> None:
     socket_app = socketio.ASGIApp(
         socketio_server=sio,
         other_asgi_app=app,
-        # 切勿删除此配置：https://github.com/pyropy/fastapi-socketio/issues/51
+        # Do not remove this configuration: https://github.com/pyropy/fastapi-socketio/issues/51
         socketio_path='/ws/socket.io',
     )
     app.mount('/ws', socket_app)

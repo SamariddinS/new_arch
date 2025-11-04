@@ -15,7 +15,7 @@ from backend.database.db import CurrentSession, CurrentSessionTransaction
 router = APIRouter()
 
 
-@router.post('/login/swagger', summary='swagger 调试专用', description='用于快捷获取 token 进行 swagger 认证')
+@router.post('/login/swagger', summary='Swagger debugging only', description='For quickly obtaining token for swagger authentication')
 async def login_swagger(
     db: CurrentSessionTransaction, obj: Annotated[HTTPBasicCredentials, Depends()]
 ) -> GetSwaggerToken:
@@ -25,8 +25,8 @@ async def login_swagger(
 
 @router.post(
     '/login',
-    summary='用户登录',
-    description='json 格式登录, 仅支持在第三方api工具调试, 例如: postman',
+    summary='User login',
+    description='JSON format login, only supported for debugging with third-party API tools, e.g.: postman',
     dependencies=[Depends(RateLimiter(times=5, minutes=1))],
 )
 async def login(
@@ -39,19 +39,19 @@ async def login(
     return response_base.success(data=data)
 
 
-@router.get('/codes', summary='获取所有授权码', description='适配 vben admin v5', dependencies=[DependsJwtAuth])
+@router.get('/codes', summary='Get all authorization codes', description='Compatible with vben admin v5', dependencies=[DependsJwtAuth])
 async def get_codes(db: CurrentSession, request: Request) -> ResponseSchemaModel[list[str]]:
     codes = await auth_service.get_codes(db=db, request=request)
     return response_base.success(data=codes)
 
 
-@router.post('/refresh', summary='刷新 token')
+@router.post('/refresh', summary='Refresh token')
 async def refresh_token(db: CurrentSession, request: Request) -> ResponseSchemaModel[GetNewToken]:
     data = await auth_service.refresh_token(db=db, request=request)
     return response_base.success(data=data)
 
 
-@router.post('/logout', summary='用户登出')
+@router.post('/logout', summary='User logout')
 async def logout(request: Request, response: Response) -> ResponseModel:
     await auth_service.logout(request=request, response=response)
     return response_base.success()

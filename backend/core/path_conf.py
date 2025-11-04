@@ -1,22 +1,22 @@
 from pathlib import Path
 
-# 项目根目录
+# Project root directory
 BASE_PATH = Path(__file__).resolve().parent.parent
 
-# alembic 迁移文件存放路径
+# Alembic migration files storage path
 ALEMBIC_VERSION_DIR = BASE_PATH / 'alembic' / 'versions'
 
-# 日志文件路径
+# Log file path
 LOG_DIR = BASE_PATH / 'log'
 
-# 静态资源目录
+# Static resources directory
 STATIC_DIR = BASE_PATH / 'static'
 
-# 上传文件目录
+# Upload file directory
 UPLOAD_DIR = STATIC_DIR / 'upload'
 
-# 插件目录
+# Plugin directory
 PLUGIN_DIR = BASE_PATH / 'plugin'
 
-# 国际化文件目录
+# Internationalization file directory
 LOCALE_DIR = BASE_PATH / 'locale'

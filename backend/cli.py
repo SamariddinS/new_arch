@@ -28,11 +28,11 @@ from backend.utils._await import run_await
 from backend.utils.console import console
 from backend.utils.file_ops import install_git_plugin, install_zip_plugin, parse_sql_script
 
-output_help = '\n更多信息，尝试 "[cyan]--help[/]"'
+output_help = '\nFor more information, try "[cyan]--help[/]"'
 
 
 class CustomReloadFilter(PythonFilter):
-    """自定义重载过滤器"""
+    """Custom Overload Filter"""
 
     def __init__(self) -> None:
         super().__init__(extra_extensions=['.json', '.yaml', '.yml'])
@@ -45,16 +45,16 @@ def run(host: str, port: int, reload: bool, workers: int) -> None:  # noqa: FBT0
     openapi_url = url + (settings.FASTAPI_OPENAPI_URL or '')
 
     panel_content = Text()
-    panel_content.append(f'当前版本: v{__version__}')
-    panel_content.append(f'\n服务地址: {url}')
-    panel_content.append('\n官方文档: https://fastapi-practices.github.io/fastapi_best_architecture_docs/')
+    panel_content.append(f'Current version: v{__version__}')
+    panel_content.append(f'\nService Address: {url}')
+    panel_content.append('\nOfficial Documentation: https://fastapi-practices.github.io/fastapi_best_architecture_docs/')
 
     if settings.ENVIRONMENT == 'dev':
-        panel_content.append(f'\n\n📖 Swagger 文档: {docs_url}', style='yellow')
-        panel_content.append(f'\n📚 Redoc   文档: {redoc_url}', style='blue')
+        panel_content.append(f'\n\n📖 Swagger Document: {docs_url}', style='yellow')
+        panel_content.append(f'\n📚 Redoc   Document: {redoc_url}', style='blue')
         panel_content.append(f'\n📡 OpenAPI JSON: {openapi_url}', style='green')
 
-    console.print(Panel(panel_content, title='fba 服务信息', border_style='purple', padding=(1, 2)))
+    console.print(Panel(panel_content, title='fba Service Information', border_style='purple', padding=(1, 2)))
     granian.Granian(
         target='backend.main:app',
         interface='asgi',
@@ -102,12 +102,12 @@ async def install_plugin(
     pk_type: PrimaryKeyType,
 ) -> None:
     if not path and not repo_url:
-        raise cappa.Exit('path 或 repo_url 必须指定其中一项', code=1)
+        raise cappa.Exit('path or repo_url must be specified.', code=1)
     if path and repo_url:
-        raise cappa.Exit('path 和 repo_url 不能同时指定', code=1)
+        raise cappa.Exit('path and repo_url cannot be specified simultaneously.', code=1)
 
     plugin_name = None
-    console.print(Text('开始安装插件...', style='bold cyan'))
+    console.print(Text('Beginning plugin installation...', style='bold cyan'))
 
     try:
         if path:
@@ -115,11 +115,11 @@ async def install_plugin(
         if repo_url:
             plugin_name = await install_git_plugin(repo_url=repo_url)
 
-        console.print(Text(f'插件 {plugin_name} 安装成功', style='bold green'))
+        console.print(Text(f'Plugin {plugin_name} installation successful', style='bold green'))
 
         sql_file = await get_plugin_sql(plugin_name, db_type, pk_type)
         if sql_file and not no_sql:
-            console.print(Text('开始自动执行插件 SQL 脚本...', style='bold cyan'))
+            console.print(Text('Beginning to execute the plugin SQL script automatically...', style='bold cyan'))
             await execute_sql_scripts(sql_file)
 
     except Exception as e:
@@ -133,9 +133,9 @@ async def execute_sql_scripts(sql_scripts: str) -> None:
             for stmt in stmts:
                 await db.execute(text(stmt))
         except Exception as e:
-            raise cappa.Exit(f'SQL 脚本执行失败：{e}', code=1)
+            raise cappa.Exit(f'SQL script execution failed:{e}', code=1)
 
-    console.print(Text('SQL 脚本已执行完成', style='bold green'))
+    console.print(Text('The SQL script has been executed successfully.', style='bold green'))
 
 
 async def import_table(
@@ -157,157 +157,157 @@ def generate() -> None:
         results = run_await(gen_business_service.get_all)()
 
         if not results:
-            raise cappa.Exit('[red]暂无可用的代码生成业务！请先通过 import 命令导入！[/]')
+            raise cappa.Exit('[red]No code generation services are currently available! Please import using the import command first![/]')
 
         table = Table(show_header=True, header_style='bold magenta')
-        table.add_column('业务编号', style='cyan', no_wrap=True, justify='center')
-        table.add_column('应用名称', style='green', no_wrap=True)
-        table.add_column('生成路径', style='yellow')
-        table.add_column('备注', style='blue')
+        table.add_column('Business Number', style='cyan', no_wrap=True, justify='center')
+        table.add_column('Application Name', style='green', no_wrap=True)
+        table.add_column('Generate Path', style='yellow')
+        table.add_column('Note', style='blue')
 
         for result in results:
             ids.append(result.id)
             table.add_row(
                 str(result.id),
                 result.app_name,
-                result.gen_path or f'应用 {result.app_name} 根路径',
+                result.gen_path or f'Apply {result.app_name} root path',
                 result.remark or '',
             )
 
         console.print(table)
-        business = IntPrompt.ask('请从中选择一个业务编号', choices=[str(_id) for _id in ids])
+        business = IntPrompt.ask('Please select one business number from the list.', choices=[str(_id) for _id in ids])
 
         gen_path = run_await(gen_service.generate)(pk=business)
     except Exception as e:
         raise cappa.Exit(e.msg if isinstance(e, BaseExceptionError) else str(e), code=1)
 
-    console.print(Text('\n代码已生成完毕', style='bold green'))
-    console.print(Text('\n详情请查看：'), Text(gen_path, style='bold magenta'))
+    console.print(Text('\nThe code has been generated.', style='bold green'))
+    console.print(Text('\nFor more details, please see:'), Text(gen_path, style='bold magenta'))
 
 
-@cappa.command(help='运行 API 服务', default_long=True)
+@cappa.command(help='Run API Service', default_long=True)
 @dataclass
 class Run:
     host: Annotated[
         str,
         cappa.Arg(
             default='127.0.0.1',
-            help='提供服务的主机 IP 地址，对于本地开发，请使用 `127.0.0.1`。'
-            '要启用公共访问，例如在局域网中，请使用 `0.0.0.0`',
+            help='The IP address of the host providing the service. For local development, use `127.0.0.1`.'
+            'To enable public access, such as within a local area network, use `0.0.0.0`.',
         ),
     ]
     port: Annotated[
         int,
-        cappa.Arg(default=8000, help='提供服务的主机端口号'),
+        cappa.Arg(default=8000, help='Host port number providing the service'),
     ]
     no_reload: Annotated[
         bool,
-        cappa.Arg(default=False, help='禁用在（代码）文件更改时自动重新加载服务器'),
+        cappa.Arg(default=False, help='Disable automatic server reloading when the (code) file changes'),
     ]
     workers: Annotated[
         int,
-        cappa.Arg(default=1, help='使用多个工作进程，必须与 `--no-reload` 同时使用'),
+        cappa.Arg(default=1, help='When using multiple worker processes, this option must be used in conjunction with `--no-reload`.'),
     ]
 
     def __call__(self) -> None:
         run(host=self.host, port=self.port, reload=self.no_reload, workers=self.workers)
 
 
-@cappa.command(help='从当前主机启动 Celery worker 服务', default_long=True)
+@cappa.command(help='Start the Celery worker service from the current host.', default_long=True)
 @dataclass
 class Worker:
     log_level: Annotated[
         Literal['info', 'debug'],
-        cappa.Arg(short='-l', default='info', help='日志输出级别'),
+        cappa.Arg(short='-l', default='info', help='Log output level'),
     ]
 
     def __call__(self) -> None:
         run_celery_worker(log_level=self.log_level)
 
 
-@cappa.command(help='从当前主机启动 Celery beat 服务', default_long=True)
+@cappa.command(help='Start the Celery Beat service on the current host.', default_long=True)
 @dataclass
 class Beat:
     log_level: Annotated[
         Literal['info', 'debug'],
-        cappa.Arg(short='-l', default='info', help='日志输出级别'),
+        cappa.Arg(short='-l', default='info', help='Log output level'),
     ]
 
     def __call__(self) -> None:
         run_celery_beat(log_level=self.log_level)
 
 
-@cappa.command(help='从当前主机启动 Celery flower 服务', default_long=True)
+@cappa.command(help='Start the Celery flower service on the current host.', default_long=True)
 @dataclass
 class Flower:
     port: Annotated[
         int,
-        cappa.Arg(default=8555, help='提供服务的主机端口号'),
+        cappa.Arg(default=8555, help='Host port number providing the service'),
     ]
     basic_auth: Annotated[
         str,
-        cappa.Arg(default='admin:123456', help='页面登录的用户名和密码'),
+        cappa.Arg(default='admin:123456', help='Username and password for page login'),
     ]
 
     def __call__(self) -> None:
         run_celery_flower(port=self.port, basic_auth=self.basic_auth)
 
 
-@cappa.command(help='运行 Celery 服务')
+@cappa.command(help='Run the Celery service')
 @dataclass
 class Celery:
     subcmd: cappa.Subcommands[Worker | Beat | Flower]
 
 
-@cappa.command(help='新增插件', default_long=True)
+@cappa.command(help='New Plugin', default_long=True)
 @dataclass
 class Add:
     path: Annotated[
         str | None,
-        cappa.Arg(help='ZIP 插件的本地完整路径'),
+        cappa.Arg(help='Full local path to the ZIP plugin'),
     ]
     repo_url: Annotated[
         str | None,
-        cappa.Arg(help='Git 插件的仓库地址'),
+        cappa.Arg(help='Git plugin repository address'),
     ]
     no_sql: Annotated[
         bool,
-        cappa.Arg(default=False, help='禁用插件 SQL 脚本自动执行'),
+        cappa.Arg(default=False, help='Disable Plugin SQL Script Auto-Execution'),
     ]
     db_type: Annotated[
         DataBaseType,
-        cappa.Arg(default='mysql', help='执行插件 SQL 脚本的数据库类型'),
+        cappa.Arg(default='mysql', help='Database type for executing plugin SQL scripts'),
     ]
     pk_type: Annotated[
         PrimaryKeyType,
-        cappa.Arg(default='autoincrement', help='执行插件 SQL 脚本数据库主键类型'),
+        cappa.Arg(default='autoincrement', help='Execute Plugin SQL Script Database Primary Key Type'),
     ]
 
     async def __call__(self) -> None:
         await install_plugin(self.path, self.repo_url, self.no_sql, self.db_type, self.pk_type)
 
 
-@cappa.command(help='导入代码生成业务和模型列', default_long=True)
+@cappa.command(help='Import code to generate business and model columns', default_long=True)
 @dataclass
 class Import:
     app: Annotated[
         str,
-        cappa.Arg(help='应用名称，用于代码生成到指定 app'),
+        cappa.Arg(help='Application Name, used for code generation to the specified app'),
     ]
     table_schema: Annotated[
         str,
-        cappa.Arg(short='tc', default='fba', help='数据库名'),
+        cappa.Arg(short='tc', default='fba', help='Database name'),
     ]
     table_name: Annotated[
         str,
-        cappa.Arg(short='tn', help='数据库表名'),
+        cappa.Arg(short='tn', help='Database table name'),
     ]
 
     async def __call__(self) -> None:
         await import_table(self.app, self.table_schema, self.table_name)
 
 
-@cappa.command(name='codegen', help='代码生成（体验完整功能，请自行部署 fba vben 前端工程）', default_long=True)
+@cappa.command(name='codegen', help='Code Generation (To experience full functionality, please deploy the fba vben frontend project yourself)', default_long=True)
 @dataclass
 class CodeGenerate:
     subcmd: cappa.Subcommands[Import | None] = None
@@ -316,12 +316,12 @@ class CodeGenerate:
         generate()
 
 
-@cappa.command(help='一个高效的 fba 命令行界面', default_long=True)
+@cappa.command(help='An efficient FBA command-line interface', default_long=True)
 @dataclass
 class FbaCli:
     sql: Annotated[
         str,
-        cappa.Arg(value_name='PATH', default='', show_default=False, help='在事务中执行 SQL 脚本'),
+        cappa.Arg(value_name='PATH', default='', show_default=False, help='Execute SQL scripts within transactions'),
     ]
     subcmd: cappa.Subcommands[Run | Celery | Add | CodeGenerate | None] = None
 

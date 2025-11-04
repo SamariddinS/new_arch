@@ -3,10 +3,10 @@ import re
 
 def search_string(pattern: str, text: str) -> re.Match[str] | None:
     """
-    全字段正则匹配
+    Full field regex match
 
-    :param pattern: 正则表达式模式
-    :param text: 待匹配的文本
+    :param pattern: Regular expression pattern
+    :param text: Text to match
     :return:
     """
     if not pattern or not text:
@@ -18,10 +18,10 @@ def search_string(pattern: str, text: str) -> re.Match[str] | None:
 
 def match_string(pattern: str, text: str) -> re.Match[str] | None:
     """
-    从字段开头正则匹配
+    Regex match from the beginning of field
 
-    :param pattern: 正则表达式模式
-    :param text: 待匹配的文本
+    :param pattern: Regular expression pattern
+    :param text: Text to match
     :return:
     """
     if not pattern or not text:
@@ -33,9 +33,9 @@ def match_string(pattern: str, text: str) -> re.Match[str] | None:
 
 def is_phone(number: str) -> re.Match[str] | None:
     """
-    检查手机号码格式
+    Check phone number format
 
-    :param number: 待检查的手机号码
+    :param number: Phone number to check
     :return:
     """
     if not number:
@@ -47,9 +47,9 @@ def is_phone(number: str) -> re.Match[str] | None:
 
 def is_git_url(url: str) -> re.Match[str] | None:
     """
-    检查 git URL 格式
+    Check git URL format
 
-    :param url: 待检查的 URL
+    :param url: URL to check
     :return:
     """
     if not url:

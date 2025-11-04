@@ -3,7 +3,7 @@ from backend.core.conf import settings
 
 
 def get_request_trace_id() -> str:
-    """从请求头中获取追踪 ID"""
+    """Get trace ID from request header"""
     if ctx.exists():
         return ctx.get(settings.TRACE_ID_REQUEST_HEADER_KEY, settings.TRACE_ID_LOG_DEFAULT_VALUE)
     return settings.TRACE_ID_LOG_DEFAULT_VALUE
