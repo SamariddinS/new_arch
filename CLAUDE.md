@@ -649,6 +649,93 @@ plugin/name/
 
 Both plugins extend the `admin` app (configured in `plugin.toml`).
 
+## Celery Task System (`backend/app/task/`)
+
+**Purpose:** Distributed asynchronous task processing with database-backed scheduling
+
+### Architecture
+
+**Broker:** RabbitMQ (default) or Redis
+**Result Backend:** PostgreSQL
+**Scheduler:** Database-backed with 5-second polling, Redis distributed locking
+
+**Task discovery:** Auto-discovers tasks from any `tasks.py` file in `backend/app/task/tasks/` subdirectories
+
+### Creating Tasks
+
+```python
+from backend.app.task.celery import celery_app
+from celery import shared_task
+
+# Simple task
+@celery_app.task(name='my_task')
+def my_task(param: str) -> str:
+    return 'result'
+
+# Async task (recommended for I/O operations)
+@shared_task
+async def cleanup_task() -> str:
+    async with async_db_session.begin() as db:
+        # Database operations
+        return 'Success'
+```
+
+### Scheduling
+
+**Two schedule types:**
+- **Interval**: Every N seconds/minutes/hours/days
+- **Crontab**: Unix cron expressions (5 fields: `minute hour day_of_week day_of_month month_of_year`)
+
+**Code-based schedules** (`tasks/beat.py`):
+```python
+LOCAL_BEAT_SCHEDULE = {
+    'Task Name': {
+        'task': 'task_name_or_path',
+        'schedule': TzAwareCrontab('0', '2', '*', '*', '*'),  # Daily 2 AM
+        'args': [],
+        'kwargs': {},
+    },
+}
+```
+
+**Database schedules:** Managed via API `/api/v1/schedulers` or directly in `task_scheduler` table
+
+**Dynamic scheduling features:**
+- Runtime schedule modifications
+- Start time (delay execution)
+- Expiration (stop after datetime/seconds)
+- One-off tasks (run once then disable)
+- Queue routing
+
+### Executing Tasks
+
+```python
+# Async execution (returns immediately with task ID)
+result = my_task.delay('param')
+task_id = result.id
+
+# Check result later
+result = celery_app.AsyncResult(task_id)
+if result.ready():
+    value = result.result
+```
+
+### API Endpoints
+
+- `POST /api/v1/schedulers` - Create scheduled task
+- `GET /api/v1/schedulers` - List scheduled tasks
+- `PUT /api/v1/schedulers/{id}` - Update/enable/disable task
+- `DELETE /api/v1/schedulers/{id}` - Delete scheduled task
+- `GET /api/v1/results/{task_id}` - Query task result
+- `POST /api/v1/control/revoke` - Revoke/terminate task
+
+### Task Base Class
+
+All tasks inherit from `TaskBase` with:
+- Auto-retry on SQLAlchemy errors
+- Lifecycle hooks: `before_start()`, `on_success()`, `on_failure()`
+- Socket.IO notifications for task events
+
 ## Important Configuration Files
 
 - **`backend/core/conf.py`** - Global settings (Pydantic Settings from `.env`)
