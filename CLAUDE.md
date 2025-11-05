@@ -42,8 +42,18 @@ FastAPI Best Architecture (FBA) is an enterprise-level backend architecture solu
 
 4. **Seed test data**:
    - Run SQL scripts from `backend/sql/` for your PK mode
-   - For plugins: run scripts from `plugin/sql/`
-   - Or use CLI: `fba <path_to_sql_script>`
+   - For plugins: run scripts from `backend/plugin/*/sql/`
+   - Use CLI to execute SQL scripts:
+     ```bash
+     # Main test data
+     fba --sql backend/sql/init_test_data.sql
+
+     # Config plugin
+     fba --sql backend/plugin/config/sql/postgresql/init.sql
+
+     # Dict plugin
+     fba --sql backend/plugin/dict/sql/postgresql/init.sql
+     ```
 
 ### Running the Application
 
@@ -550,6 +560,94 @@ async def delete_item():
 ```
 
 When `DEMO_MODE = True` in config, all non-GET/OPTIONS requests are blocked except those in `DEMO_MODE_EXCLUDE`.
+
+## Built-in Plugins
+
+The project includes built-in plugins that extend the admin application with common features.
+
+### Config Plugin (`backend/plugin/config/`)
+
+**Purpose:** System parameter configuration management
+
+**Use case:** Store dynamic system parameters that can be modified at runtime without code changes or redeployment.
+
+**Database table:** `sys_config`
+
+**Key fields:**
+- `name` - Configuration display name
+- `type` - Configuration type/category (optional)
+- `key` - Unique configuration key identifier
+- `value` - Configuration value (stored as text)
+- `is_frontend` - Boolean flag indicating if config should be exposed to frontend
+- `remark` - Optional description
+
+**API endpoints:** `/api/v1/configs`
+
+**Common usage:**
+```python
+# Store dynamic settings like:
+# - Feature flags (enable_notifications: true/false)
+# - System limits (max_upload_size: 5242880)
+# - External service URLs (payment_api_url: https://...)
+# - Display settings (items_per_page: 20)
+```
+
+### Dict Plugin (`backend/plugin/dict/`)
+
+**Purpose:** Data dictionary management for constraining frontend data display
+
+**Use case:** Define enumeration values and their display labels used throughout the application (e.g., user status, order types, etc.).
+
+**Database tables:**
+- `sys_dict_type` - Dictionary types/categories
+- `sys_dict_data` - Dictionary data items (belongs to a type)
+
+**Relationship:** One dict type has many dict data items (one-to-many)
+
+**Dict Type fields:**
+- `name` - Dictionary type display name
+- `code` - Unique dictionary type code
+- `remark` - Optional description
+
+**Dict Data fields:**
+- `type_id` / `type_code` - Foreign key to dict type
+- `label` - Display label (shown to users)
+- `value` - Actual value (used in code)
+- `color` - Optional color for frontend display
+- `sort` - Sort order
+- `status` - Enable/disable flag (0=disabled, 1=enabled)
+
+**API endpoints:**
+- `/api/v1/dict-types` - Manage dictionary types
+- `/api/v1/dict-datas` - Manage dictionary data
+
+**Common usage:**
+```python
+# Example: User Status Dictionary
+# Type: user_status (code)
+# Data items:
+#   - label: "Active", value: "1", color: "green"
+#   - label: "Inactive", value: "0", color: "gray"
+#   - label: "Banned", value: "-1", color: "red"
+
+# Frontend can fetch this dictionary and display appropriate labels/colors
+# Backend validates values against the dictionary
+```
+
+**Plugin structure:** Both plugins follow the standard app structure:
+```
+plugin/name/
+├── api/           # API endpoints
+├── crud/          # Database operations
+├── model/         # SQLAlchemy models
+├── schema/        # Pydantic schemas
+├── service/       # Business logic
+├── sql/           # Database initialization scripts
+├── plugin.toml    # Plugin metadata
+└── README.md      # Plugin documentation
+```
+
+Both plugins extend the `admin` app (configured in `plugin.toml`).
 
 ## Important Configuration Files
 
