@@ -208,7 +208,7 @@ class AuthService:
             raise errors.NotFoundError(msg='User does not exist')
         if not user.status:
             raise errors.AuthorizationError(msg='User has been locked, please contact system administrator')
-        if not user.is_multi_login and await redis_client.keys(match=f'{settings.TOKEN_REDIS_PREFIX}:{user.id}:*'):
+        if not user.is_multi_login and await redis_client.get_prefix(f'{settings.TOKEN_REDIS_PREFIX}:{user.id}:*'):
             raise errors.ForbiddenError(msg='This user has logged in from another location, please login again and change password promptly')
         new_token = await create_new_token(
             refresh_token,
