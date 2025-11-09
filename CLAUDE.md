@@ -246,7 +246,7 @@ raise CustomError(error=CustomErrorCode.SOMETHING_WRONG, data=extra_info)
 - `RBAC_ROLE_MENU_MODE = True` enables role-menu mode
 - `RBAC_ROLE_MENU_EXCLUDE` lists permission codes that bypass RBAC
 
-**Usage:**
+**Basic Usage (Manual):**
 ```python
 from backend.common.security.rbac import DependsRBAC
 from backend.common.security.permission import RequestPermission
@@ -261,6 +261,41 @@ from backend.common.security.permission import RequestPermission
 async def protected_endpoint():
     pass
 ```
+
+**Recommended Usage (Permission Factory):**
+```python
+from backend.common.security.permission_factory import PermissionFactory
+
+# Define once at module level
+_perms = PermissionFactory('sys', 'user')
+
+@router.get('', dependencies=_perms.get())  # sys:user:get
+async def get_users():
+    pass
+
+@router.post('', dependencies=_perms.add())  # sys:user:add
+async def create_user():
+    pass
+
+@router.put('/{pk}', dependencies=_perms.edit())  # sys:user:edit
+async def update_user(pk: int):
+    pass
+
+@router.delete('/{pk}', dependencies=_perms.delete())  # sys:user:del
+async def delete_user(pk: int):
+    pass
+
+# Custom actions
+@router.put('/{pk}/password', dependencies=_perms.custom('password:reset'))
+async def reset_password(pk: int):
+    pass  # Permission: sys:user:password:reset
+```
+
+**Permission Factory Benefits:**
+- Reduces boilerplate code
+- Ensures consistent naming conventions (module:resource:action)
+- Type-safe and maintainable
+- See: `docs/backend/reference/permission-factory.md` for full documentation
 
 Permission codes must match menu permission codes in the database.
 
