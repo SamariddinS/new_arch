@@ -200,93 +200,73 @@ class UserService:
         return count
 
     @staticmethod
-    async def update_nickname(*, db: AsyncSession, request: Request, nickname: str) -> int:
+    async def update_nickname(*, db: AsyncSession, user_id: int, nickname: str) -> int:
         """
         Update current user nickname
 
         :param db: Database session
-        :param request: FastAPI request object
+        :param user_id: User ID
         :param nickname: User nickname
         :return:
         """
-        token = get_token(request)
-        token_payload = jwt_decode(token)
-        user = await user_dao.get(db, token_payload.id)
-        if not user:
-            raise errors.NotFoundError(msg='User does not exist')
-        count = await user_dao.update_nickname(db, token_payload.id, nickname)
-        await redis_client.delete(f'{settings.JWT_USER_REDIS_PREFIX}:{user.id}')
+        count = await user_dao.update_nickname(db, user_id, nickname)
+        await redis_client.delete(f'{settings.JWT_USER_REDIS_PREFIX}:{user_id}')
         return count
 
     @staticmethod
-    async def update_avatar(*, db: AsyncSession, request: Request, avatar: str) -> int:
+    async def update_avatar(*, db: AsyncSession, user_id: int, avatar: str) -> int:
         """
         Update current user avatar
 
         :param db: Database session
-        :param request: FastAPI request object
+        :param user_id: User ID
         :param avatar: Avatar URL
         :return:
         """
-        token = get_token(request)
-        token_payload = jwt_decode(token)
-        user = await user_dao.get(db, token_payload.id)
-        if not user:
-            raise errors.NotFoundError(msg='User does not exist')
-        count = await user_dao.update_avatar(db, token_payload.id, avatar)
-        await redis_client.delete(f'{settings.JWT_USER_REDIS_PREFIX}:{user.id}')
+        count = await user_dao.update_avatar(db, user_id, avatar)
+        await redis_client.delete(f'{settings.JWT_USER_REDIS_PREFIX}:{user_id}')
         return count
 
     @staticmethod
-    async def update_email(*, db: AsyncSession, request: Request, captcha: str, email: str) -> int:
+    async def update_email(*, db: AsyncSession, user_id: int, captcha: str, email: str) -> int:
         """
         Update current user email
 
         :param db: Database session
-        :param request: FastAPI request object
+        :param user_id: User ID
         :param captcha: Email verification code
         :param email: Email
         :return:
         """
-        token = get_token(request)
-        token_payload = jwt_decode(token)
-        user = await user_dao.get(db, token_payload.id)
-        if not user:
-            raise errors.NotFoundError(msg='User does not exist')
         captcha_code = await redis_client.get(f'{settings.EMAIL_CAPTCHA_REDIS_PREFIX}:{ctx.ip}')
         if not captcha_code:
             raise errors.RequestError(msg='Verification code has expired, please retrieve again')
         if captcha != captcha_code:
             raise errors.CustomError(error=CustomErrorCode.CAPTCHA_ERROR)
         await redis_client.delete(f'{settings.EMAIL_CAPTCHA_REDIS_PREFIX}:{ctx.ip}')
-        count = await user_dao.update_email(db, token_payload.id, email)
-        await redis_client.delete(f'{settings.JWT_USER_REDIS_PREFIX}:{user.id}')
+        count = await user_dao.update_email(db, user_id, email)
+        await redis_client.delete(f'{settings.JWT_USER_REDIS_PREFIX}:{user_id}')
         return count
 
     @staticmethod
-    async def update_password(*, db: AsyncSession, request: Request, obj: ResetPasswordParam) -> int:
+    async def update_password(*, db: AsyncSession, user_id: int, hash_password: str, obj: ResetPasswordParam) -> int:
         """
         Update current user password
 
         :param db: Database session
-        :param request: FastAPI request object
+        :param user_id: User ID
         :param obj: Password reset parameters
         :return:
         """
-        token = get_token(request)
-        token_payload = jwt_decode(token)
-        user = await user_dao.get(db, token_payload.id)
-        if not user:
-            raise errors.NotFoundError(msg='User does not exist')
-        if not password_verify(obj.old_password, user.password):
+        if not password_verify(obj.old_password, hash_password):
             raise errors.RequestError(msg='Old password is incorrect')
         if obj.new_password != obj.confirm_password:
             raise errors.RequestError(msg='Passwords do not match')
-        count = await user_dao.reset_password(db, user.id, obj.new_password)
+        count = await user_dao.reset_password(db, user_id, obj.new_password)
         key_prefix = [
-            f'{settings.TOKEN_REDIS_PREFIX}:{user.id}',
-            f'{settings.TOKEN_REFRESH_REDIS_PREFIX}:{user.id}',
-            f'{settings.JWT_USER_REDIS_PREFIX}:{user.id}',
+            f'{settings.TOKEN_REDIS_PREFIX}:{user_id}',
+            f'{settings.TOKEN_REFRESH_REDIS_PREFIX}:{user_id}',
+            f'{settings.JWT_USER_REDIS_PREFIX}:{user_id}',
         ]
         for prefix in key_prefix:
             await redis_client.delete_prefix(prefix)

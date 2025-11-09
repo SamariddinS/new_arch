@@ -111,6 +111,11 @@ values
 (1, 'Department Name equals Test', 'Department', 'name', 1, 0, 'Test', now(), null),
 (2, 'Parent department ID equals 1', 'Department', 'parent_id', 0, 0, '1', now(), null);
 
+insert into sys_role_data_scope (id, role_id, data_scope_id)
+values
+(1, 1, 1),
+(2, 1, 2);
+
 insert into sys_data_scope_rule (id, data_scope_id, data_rule_id)
 values
 (1, 1, 1),

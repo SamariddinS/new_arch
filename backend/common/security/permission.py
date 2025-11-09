@@ -3,6 +3,7 @@ from sqlalchemy import ColumnElement, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.admin.crud.crud_data_scope import data_scope_dao
+from backend.app.admin.schema.user import GetUserInfoWithRelationDetail
 from backend.common.context import ctx
 from backend.common.enums import RoleDataRuleExpressionType, RoleDataRuleOperatorType
 from backend.common.exception import errors
@@ -42,50 +43,39 @@ class RequestPermission:
             ctx.permission = self.value
 
 
-async def filter_data_permission(db: AsyncSession, request: Request) -> ColumnElement[bool]:  # noqa: C901
+def filter_data_permission(request_user: GetUserInfoWithRelationDetail) -> ColumnElement[bool]:  # noqa: C901
     """
     Filter data permissions, control user visible data scope
 
     Use cases:
         - Control which data users can see
 
-    :param db: Database session
-    :param request: FastAPI request object
+    :param request_user: Request User
     :return:
     """
     # Whether to filter data permissions
-    if request.user.is_superuser:
+    if request_user.user.is_superuser:
         return or_(1 == 1)
 
-    for role in request.user.roles:
+    for role in request_user.user.roles:
         if not role.is_filter_scopes:
             return or_(1 == 1)
 
-    # Get data scopes
-    data_scope_ids = set()
-    for role in request.user.roles:
+    # Data Retrieval Rules
+    data_rules = set()
+    for role in request_user.user.roles:
         for scope in role.scopes:
             if scope.status:
-                data_scope_ids.add(scope.id)
+                data_rules.update(scope.rules)
 
     # No filtering for users without rules
-    if not list(data_scope_ids):
+    if not list(data_rules):
         return or_(1 == 1)
-
-    # Get data scope rules
-    unique_data_rules = {}
-    for data_scope_id in list(data_scope_ids):
-        data_scope_with_relation = await data_scope_dao.get_with_relation(db, data_scope_id)
-        for rule in data_scope_with_relation.rules:
-            unique_data_rules[rule.id] = rule
-
-    # Convert to list
-    data_rule_list = list(unique_data_rules.values())
 
     where_and_list = []
     where_or_list = []
 
-    for data_rule in data_rule_list:
+    for data_rule in list(data_rules):
         # Validate rule model
         rule_model = data_rule.model
         if rule_model not in settings.DATA_PERMISSION_MODELS:

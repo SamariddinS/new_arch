@@ -30,8 +30,10 @@ async def get_dept_tree(
     phone: Annotated[str | None, Query(description='Contact phone')] = None,
     status: Annotated[int | None, Query(description='Status')] = None,
 ) -> ResponseSchemaModel[list[GetDeptTree]]:
-    dept = await dept_service.get_tree(db=db, request=request, name=name, leader=leader, phone=phone, status=status)
-    return response_base.success(data=dept)
+      dept = await dept_service.get_tree(
+          db=db, request_user=request.user, name=name, leader=leader, phone=phone, status=status
+      )
+      return response_base.success(data=dept)
 
 
 @router.post(

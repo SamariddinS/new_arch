@@ -1,11 +1,11 @@
 from collections.abc import Sequence
 
-from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy_crud_plus import CRUDPlus
 
 from backend.app.admin.model import Dept
 from backend.app.admin.schema.dept import CreateDeptParam, UpdateDeptParam
+from backend.app.admin.schema.user import GetUserInfoWithRelationDetail
 from backend.common.security.permission import filter_data_permission
 
 
@@ -34,8 +34,8 @@ class CRUDDept(CRUDPlus[Dept]):
 
     async def get_all(
         self,
-        request: Request,
         db: AsyncSession,
+        request_user: GetUserInfoWithRelationDetail,
         name: str | None,
         leader: str | None,
         phone: str | None,
@@ -44,7 +44,7 @@ class CRUDDept(CRUDPlus[Dept]):
         """
         Get all departments
 
-        :param request: FastAPI request object
+        :param user_id: User ID
         :param db: Database session
         :param name: Department name
         :param leader: Leader
@@ -63,7 +63,7 @@ class CRUDDept(CRUDPlus[Dept]):
         if status is not None:
             filters['status'] = status
 
-        data_filtered = await filter_data_permission(db, request)
+        data_filtered = filter_data_permission(request_user)
         return await self.select_models_order(db, 'sort', 'desc', data_filtered, **filters)
 
     async def create(self, db: AsyncSession, obj: CreateDeptParam) -> None:

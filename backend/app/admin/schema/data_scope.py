@@ -47,4 +47,4 @@ class GetDataScopeDetail(DataScopeBase):
 class GetDataScopeWithRelationDetail(GetDataScopeDetail):
     """Data scope with relation detail"""
 
-    rules: list[GetDataRuleDetail] = Field([], description='Data rule list')
+    rules: list[GetDataRuleDetail | None] = Field([], description='Data rule list')

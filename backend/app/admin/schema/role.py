@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import ConfigDict, Field
 
-from backend.app.admin.schema.data_scope import GetDataScopeDetail
+from backend.app.admin.schema.data_scope import GetDataScopeWithRelationDetail
 from backend.app.admin.schema.menu import GetMenuDetail
 from backend.common.enums import StatusType
 from backend.common.schema import SchemaBase
@@ -57,4 +57,4 @@ class GetRoleWithRelationDetail(GetRoleDetail):
     """Role with relation detail"""
 
     menus: list[GetMenuDetail | None] = Field([], description='Menu detail list')
-    scopes: list[GetDataScopeDetail | None] = Field([], description='Data scope list')
+    scopes: list[GetDataScopeWithRelationDetail | None] = Field([], description='Data Range List')

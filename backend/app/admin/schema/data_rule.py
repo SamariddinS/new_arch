@@ -34,7 +34,7 @@ class DeleteDataRuleParam(SchemaBase):
 class GetDataRuleDetail(DataRuleSchemaBase):
     """Data rule detail"""
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, frozen=True)
 
     id: int = Field(description='Rule ID')
     created_time: datetime = Field(description='Creation time')
