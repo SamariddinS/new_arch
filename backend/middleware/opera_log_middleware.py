@@ -51,7 +51,7 @@ class OperaLogMiddleware(BaseHTTPMiddleware):
             error = None
             try:
                 response = await call_next(request)
-                elapsed = (time.perf_counter() - ctx.perf_time) * 1000
+                elapsed = round((time.perf_counter() - ctx.perf_time) * 1000, 3)
                 for e in [
                     '__request_http_exception__',
                     '__request_validation_exception__',
@@ -65,7 +65,7 @@ class OperaLogMiddleware(BaseHTTPMiddleware):
                         log.error(f'Request exception: {msg}')
                         break
             except Exception as e:
-                elapsed = (time.perf_counter() - ctx.perf_time) * 1000
+                elapsed = round((time.perf_counter() - ctx.perf_time) * 1000, 3)
                 code = getattr(e, 'code', StandardResponseCode.HTTP_500)  # Compatible with SQLAlchemy exception usage
                 msg = getattr(e, 'msg', str(e))  # Not recommended to use traceback module to get error info, it exposes code details
                 status = StatusType.disable
@@ -86,6 +86,9 @@ class OperaLogMiddleware(BaseHTTPMiddleware):
             log.debug(f'API summary: [{summary}]')
             log.debug(f'Request address: [{ctx.ip}]')
             log.debug(f'Request parameters: {args}')
+            log.info(f'{request.client.host: <15} | {request.method: <8} | {code!s: <6} | {path} | {elapsed:.3f}ms')
+            if request.method != 'OPTIONS':
+                log.debug('<-- Request End')
 
             # Log creation
             opera_log_in = CreateOperaLogParam(
