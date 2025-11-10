@@ -54,16 +54,16 @@ def filter_data_permission(request_user: GetUserInfoWithRelationDetail) -> Colum
     :return:
     """
     # Whether to filter data permissions
-    if request_user.user.is_superuser:
+    if request_user.is_superuser:
         return or_(1 == 1)
 
-    for role in request_user.user.roles:
+    for role in request_user.roles:
         if not role.is_filter_scopes:
             return or_(1 == 1)
 
     # Data Retrieval Rules
     data_rules = set()
-    for role in request_user.user.roles:
+    for role in request_user.roles:
         for scope in role.scopes:
             if scope.status:
                 data_rules.update(scope.rules)
